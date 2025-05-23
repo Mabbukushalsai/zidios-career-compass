@@ -9,7 +9,490 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      applications: {
+        Row: {
+          cover_letter: string | null
+          created_at: string | null
+          id: string
+          job_id: string
+          resume_url: string | null
+          status: string
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          cover_letter?: string | null
+          created_at?: string | null
+          id?: string
+          job_id: string
+          resume_url?: string | null
+          status?: string
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          cover_letter?: string | null
+          created_at?: string | null
+          id?: string
+          job_id?: string
+          resume_url?: string | null
+          status?: string
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_profiles: {
+        Row: {
+          company_size: string | null
+          description: string | null
+          id: string
+          industry: string | null
+          logo_url: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          company_size?: string | null
+          description?: string | null
+          id: string
+          industry?: string | null
+          logo_url?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          company_size?: string | null
+          description?: string | null
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_enrollments: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          course_id: string
+          id: string
+          progress: number | null
+          started_at: string | null
+          student_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          course_id: string
+          id?: string
+          progress?: number | null
+          started_at?: string | null
+          student_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          course_id?: string
+          id?: string
+          progress?: number | null
+          started_at?: string | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          content_url: string | null
+          created_at: string | null
+          description: string
+          duration: string | null
+          id: string
+          instructor: string
+          thumbnail_url: string | null
+          title: string
+        }
+        Insert: {
+          content_url?: string | null
+          created_at?: string | null
+          description: string
+          duration?: string | null
+          id?: string
+          instructor: string
+          thumbnail_url?: string | null
+          title: string
+        }
+        Update: {
+          content_url?: string | null
+          created_at?: string | null
+          description?: string
+          duration?: string | null
+          id?: string
+          instructor?: string
+          thumbnail_url?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          created_at: string | null
+          description: string
+          end_date: string
+          event_type: string
+          id: string
+          image_url: string | null
+          location: string | null
+          organizer: string | null
+          start_date: string
+          title: string
+          website_url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          end_date: string
+          event_type: string
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          organizer?: string | null
+          start_date: string
+          title: string
+          website_url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          end_date?: string
+          event_type?: string
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          organizer?: string | null
+          start_date?: string
+          title?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      jobs: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          description: string
+          id: string
+          job_type: string | null
+          location: string | null
+          salary_range: string | null
+          skills_required: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          description: string
+          id?: string
+          job_type?: string | null
+          location?: string | null
+          salary_range?: string | null
+          skills_required?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          job_type?: string | null
+          location?: string | null
+          salary_range?: string | null
+          skills_required?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mock_test_questions: {
+        Row: {
+          correct_answer: string
+          id: string
+          options: Json
+          points: number | null
+          question: string
+          test_id: string
+        }
+        Insert: {
+          correct_answer: string
+          id?: string
+          options: Json
+          points?: number | null
+          question: string
+          test_id: string
+        }
+        Update: {
+          correct_answer?: string
+          id?: string
+          options?: Json
+          points?: number | null
+          question?: string
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mock_test_questions_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "mock_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mock_tests: {
+        Row: {
+          created_at: string | null
+          description: string
+          duration: number
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          duration: number
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          duration?: number
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          id: string
+          location: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          id: string
+          location?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          id?: string
+          location?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_profiles: {
+        Row: {
+          education: string | null
+          graduation_year: number | null
+          id: string
+          resume_url: string | null
+          skills: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          education?: string | null
+          graduation_year?: number | null
+          id: string
+          resume_url?: string | null
+          skills?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          education?: string | null
+          graduation_year?: number | null
+          id?: string
+          resume_url?: string | null
+          skills?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_materials: {
+        Row: {
+          content_url: string
+          created_at: string | null
+          description: string
+          id: string
+          material_type: string
+          thumbnail_url: string | null
+          title: string
+        }
+        Insert: {
+          content_url: string
+          created_at?: string | null
+          description: string
+          id?: string
+          material_type: string
+          thumbnail_url?: string | null
+          title: string
+        }
+        Update: {
+          content_url?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          material_type?: string
+          thumbnail_url?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      test_attempts: {
+        Row: {
+          answers: Json | null
+          completed_at: string | null
+          id: string
+          score: number | null
+          started_at: string | null
+          student_id: string
+          test_id: string
+        }
+        Insert: {
+          answers?: Json | null
+          completed_at?: string | null
+          id?: string
+          score?: number | null
+          started_at?: string | null
+          student_id: string
+          test_id: string
+        }
+        Update: {
+          answers?: Json | null
+          completed_at?: string | null
+          id?: string
+          score?: number | null
+          started_at?: string | null
+          student_id?: string
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_attempts_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_attempts_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "mock_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          approved: boolean | null
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          role: string
+        }
+        Insert: {
+          approved?: boolean | null
+          created_at?: string | null
+          email: string
+          id?: string
+          name: string
+          role: string
+        }
+        Update: {
+          approved?: boolean | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          role?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

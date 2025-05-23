@@ -16,14 +16,28 @@ import {
   Building2,
   Shield
 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 const Navigation = () => {
   const { user, logout, isGuest } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: "Error",
+        description: "There was a problem logging out",
+        variant: "destructive",
+      });
+    }
   };
 
   const getNavItems = () => {

@@ -1,6 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
 
-interface User {
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Session, User } from '@supabase/supabase-js';
+import { supabase } from '../integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+
+interface UserData {
   id: string;
   email: string;
   role: 'admin' | 'student' | 'company';
@@ -9,76 +13,202 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: UserData | null;
+  session: Session | null;
   isGuest: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, role: string) => Promise<void>;
   guestLogin: (role: string) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isGuest, setIsGuest] = useState(false);
+  const [user, setUser] = useState<UserData | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isGuest, setIsGuest] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Check for existing auth token on app load
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    const guestMode = localStorage.getItem('isGuest');
-    
-    if (token && storedUser) {
-      setUser(JSON.parse(storedUser));
-      setIsGuest(guestMode === 'true');
-    }
+    // Set up auth state listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        setSession(currentSession);
+        
+        if (currentSession?.user) {
+          if (!isGuest) {
+            // Fetch user data from our custom users table
+            setTimeout(async () => {
+              try {
+                const { data, error } = await supabase
+                  .from('users')
+                  .select('*')
+                  .eq('id', currentSession.user.id)
+                  .single();
+                
+                if (error) {
+                  console.error('Error fetching user data:', error);
+                  return;
+                }
+                
+                if (data) {
+                  setUser({
+                    id: data.id,
+                    email: data.email,
+                    role: data.role as 'admin' | 'student' | 'company',
+                    name: data.name,
+                    approved: data.approved
+                  });
+                }
+              } catch (error) {
+                console.error('Error in auth state change:', error);
+              }
+            }, 0);
+          }
+        } else {
+          setUser(null);
+          setIsGuest(false);
+        }
+      }
+    );
+
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      
+      // Check if we're in guest mode
+      const guestMode = localStorage.getItem('isGuest');
+      const guestUser = localStorage.getItem('guestUser');
+      
+      if (guestMode === 'true' && guestUser) {
+        setUser(JSON.parse(guestUser));
+        setIsGuest(true);
+      } else if (currentSession?.user) {
+        // Fetch user data from our custom users table
+        supabase
+          .from('users')
+          .select('*')
+          .eq('id', currentSession.user.id)
+          .single()
+          .then(({ data, error }) => {
+            if (error) {
+              console.error('Error fetching user data:', error);
+              setIsLoading(false);
+              return;
+            }
+            
+            if (data) {
+              setUser({
+                id: data.id,
+                email: data.email,
+                role: data.role as 'admin' | 'student' | 'company',
+                name: data.name,
+                approved: data.approved
+              });
+            }
+            setIsLoading(false);
+          });
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
-    // Simulate API call
-    console.log('Logging in with:', email, password);
-    
-    // Demo users for testing
-    const demoUsers: Record<string, User> = {
-      'admin@zidio.com': { id: '1', email: 'admin@zidio.com', role: 'admin', name: 'Admin User' },
-      'student@zidio.com': { id: '2', email: 'student@zidio.com', role: 'student', name: 'John Student' },
-      'company@zidio.com': { id: '3', email: 'company@zidio.com', role: 'company', name: 'Tech Corp', approved: true },
-    };
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
 
-    const foundUser = demoUsers[email];
-    if (foundUser && password === 'password') {
-      const token = 'demo-jwt-token-' + foundUser.id;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(foundUser));
-      localStorage.setItem('isGuest', 'false');
-      setUser(foundUser);
-      setIsGuest(false);
-    } else {
-      throw new Error('Invalid credentials');
+      if (error) {
+        throw error;
+      }
+
+      // User data will be set by the auth state change listener
+    } catch (error: any) {
+      console.error('Login error:', error);
+      throw new Error(error.message || 'Failed to login');
     }
   };
 
   const register = async (name: string, email: string, password: string, role: string) => {
-    // Simulate API call
-    console.log('Registering:', { name, email, role });
-    
-    // In a real app, this would send a POST request to the server
-    // For now, we'll pretend it was successful
-    
-    const approved = role !== 'company'; // Companies need approval
-    
-    // Generate a unique ID (in a real app, this would come from the backend)
-    const id = 'user_' + Math.random().toString(36).substring(2, 9);
-    
-    // In a real app, we would NOT store the user yet, as they would need to login after registration
-    // This is just for demo purposes
-    return Promise.resolve();
+    try {
+      // First, sign up with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            role
+          }
+        }
+      });
+
+      if (authError) {
+        throw authError;
+      }
+
+      if (!authData.user) {
+        throw new Error('No user returned from sign up');
+      }
+
+      // Then, insert into our custom users table
+      const { error: insertError } = await supabase.from('users').insert({
+        id: authData.user.id,
+        email,
+        name,
+        role,
+        // Companies need approval
+        approved: role !== 'company'
+      });
+
+      if (insertError) {
+        // If insert fails, try to clean up the auth user
+        console.error('Error creating user profile:', insertError);
+        throw insertError;
+      }
+
+      // Create the appropriate profile record based on role
+      if (role === 'student') {
+        await supabase.from('student_profiles').insert({
+          id: authData.user.id
+        });
+      } else if (role === 'company') {
+        await supabase.from('company_profiles').insert({
+          id: authData.user.id
+        });
+      }
+
+      toast({
+        title: "Account created successfully",
+        description: role === 'company' 
+          ? "Your account is pending approval from an administrator."
+          : "Your account has been created successfully.",
+      });
+
+      return authData;
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      toast({
+        title: "Registration failed",
+        description: error.message || "Could not create your account",
+        variant: "destructive",
+      });
+      throw error;
+    }
   };
 
   const guestLogin = (role: string) => {
-    const guestUser: User = {
+    const guestUser: UserData = {
       id: 'guest',
       email: 'guest@demo.com',
       role: role as 'admin' | 'student' | 'company',
@@ -86,18 +216,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       approved: true
     };
     
-    localStorage.setItem('user', JSON.stringify(guestUser));
+    localStorage.setItem('guestUser', JSON.stringify(guestUser));
     localStorage.setItem('isGuest', 'true');
     setUser(guestUser);
     setIsGuest(true);
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('isGuest');
-    setUser(null);
-    setIsGuest(false);
+  const logout = async () => {
+    if (isGuest) {
+      localStorage.removeItem('guestUser');
+      localStorage.removeItem('isGuest');
+      setUser(null);
+      setIsGuest(false);
+    } else {
+      await supabase.auth.signOut();
+      // The rest will be handled by the auth state change listener
+    }
   };
 
   const isAuthenticated = !!user;
@@ -105,12 +239,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{
       user,
+      session,
       isGuest,
       login,
       register,
       guestLogin,
       logout,
-      isAuthenticated
+      isAuthenticated,
+      isLoading
     }}>
       {children}
     </AuthContext.Provider>

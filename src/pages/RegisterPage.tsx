@@ -5,10 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '../contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
 import { GraduationCap, Building2, Shield } from 'lucide-react';
 
 const RegisterPage = () => {
@@ -20,7 +19,6 @@ const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,25 +32,23 @@ const RegisterPage = () => {
       return;
     }
 
+    if (!name || !email || !password || !role) {
+      toast({
+        title: "Registration Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     
     try {
       await register(name, email, password, role);
-      
-      toast({
-        title: "Registration Successful",
-        description: role === 'company' 
-          ? "Your account is pending approval from an administrator." 
-          : "Your account has been created successfully.",
-      });
-      
       navigate('/login');
     } catch (error) {
-      toast({
-        title: "Registration Failed",
-        description: "Could not create your account. Please try again.",
-        variant: "destructive",
-      });
+      // Error handling is done in the register function
+      console.error('Registration error:', error);
     } finally {
       setLoading(false);
     }
@@ -62,7 +58,7 @@ const RegisterPage = () => {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">ZIDIO</h1>
+          <h1 className="text-4xl font-bold text-blue-600 mb-2">ZIDIO</h1>
           <p className="text-lg text-gray-600">Create a new account</p>
         </div>
 
