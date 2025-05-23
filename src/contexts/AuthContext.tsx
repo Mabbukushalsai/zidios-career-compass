@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
@@ -13,6 +12,7 @@ interface AuthContextType {
   user: User | null;
   isGuest: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, role: string) => Promise<void>;
   guestLogin: (role: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
@@ -60,6 +60,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const register = async (name: string, email: string, password: string, role: string) => {
+    // Simulate API call
+    console.log('Registering:', { name, email, role });
+    
+    // In a real app, this would send a POST request to the server
+    // For now, we'll pretend it was successful
+    
+    const approved = role !== 'company'; // Companies need approval
+    
+    // Generate a unique ID (in a real app, this would come from the backend)
+    const id = 'user_' + Math.random().toString(36).substring(2, 9);
+    
+    // In a real app, we would NOT store the user yet, as they would need to login after registration
+    // This is just for demo purposes
+    return Promise.resolve();
+  };
+
   const guestLogin = (role: string) => {
     const guestUser: User = {
       id: 'guest',
@@ -90,6 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user,
       isGuest,
       login,
+      register,
       guestLogin,
       logout,
       isAuthenticated

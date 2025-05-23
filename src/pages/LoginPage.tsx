@@ -95,6 +95,15 @@ const LoginPage = () => {
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? 'Logging in...' : 'Login'}
                   </Button>
+                  
+                  <div className="text-center text-sm">
+                    <p>
+                      Don't have an account?{' '}
+                      <Link to="/register" className="text-blue-600 hover:underline">
+                        Create an account
+                      </Link>
+                    </p>
+                  </div>
                 </form>
 
                 <div className="mt-6">
